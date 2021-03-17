@@ -44,26 +44,26 @@ document.addEventListener('DOMContentLoaded', () => {
     canvas.ctx.drawImage(canvasBB, 0, 0);
   };
 
-  var FFT = (function () {	
-		var m = 32;
-		var out = new Array( m );
+  let FFT = (function () {	
+		let m = 32;
+		let out = new Array( m );
 
 		return function ( data, len ) {
-			var pid = ( 2.0 * Math.PI ) / len;
+			let pid = ( 2.0 * Math.PI ) / len;
 
-			var r, i, w, t;
+			let r, i, w, t;
 
-			var mv = 0;
+			let mv = 0;
 			for ( t = 0; t < len; t++ ) mv += data[t];
 			mv = mv / len;
 
 			for ( w = 0; w < m; w++ ) {
-				var a = w * pid;
+				let a = w * pid;
 				r = 0;
 				i = 0;
 				for ( t = 0; t < len; t++ ) {
-					var v = data[t] - mv;
-					var ta = a * t;
+					let v = data[t] - mv;
+					let ta = a * t;
 					r += v * Math.cos( ta );
 					i += v * Math.sin( ta );
 				}
@@ -99,19 +99,26 @@ document.addEventListener('DOMContentLoaded', () => {
   let interval = setInterval(() => {
     if(smp) {
       second++;
+
+      let trend = 0;
+      for(let i = 1; i < 10; i++) {
+        trend += (outForGraph[i] + outForGraph[i-1] + outForGraph[i+1]) / 30;
+      }
+
       globalObj.push({
-          "second": second, 
-          "32Hz": outForGraph[1], 
-          "64Hz": outForGraph[2],
-          "125Hz": outForGraph[3],
-          "250Hz": outForGraph[4],
-          "500Hz": outForGraph[5],
-          "1kHz": outForGraph[5],
-          "2kHz": outForGraph[6],
-          "4kHz": outForGraph[7],
-          "8kHz": outForGraph[8],
-          "16kHz": outForGraph[9],
-        });
+        "second": second, 
+        "32Hz": outForGraph[1], 
+        "64Hz": outForGraph[2],
+        "125Hz": outForGraph[3],
+        "250Hz": outForGraph[4],
+        "500Hz": outForGraph[5],
+        "1kHz": outForGraph[5],
+        "2kHz": outForGraph[6],
+        "4kHz": outForGraph[7],
+        "8kHz": outForGraph[8],
+        "16kHz": outForGraph[9],
+        "Trend" : second === 1 ? 0 : trend
+      });
         chart.data = globalObj;
     }
   }, 1000);
@@ -156,6 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
       range.value = 1;
       volume.textContent = 1;
       clearInterval(interval);
+      globalObj = [];
+      second = 0;
     }
   };
 
@@ -238,6 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   playBtn.addEventListener('click', () => {
+
     playBtn.disabled = true;
     play('./audio/Riders_on_nightcall-DirectX10.mp3');
     setTimeout(() => {
@@ -252,99 +262,104 @@ document.addEventListener('DOMContentLoaded', () => {
     } else range.value = 1;
   });
 
-  var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+  let categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
   categoryAxis.dataFields.category = "second";
   categoryAxis.title.text = "Seconds";
   categoryAxis.renderer.grid.template.location = 0;
   categoryAxis.renderer.minGridDistance = 20;
 
 
-  var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+  let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
   valueAxis.title.text = "Hz";
 
-  // Create series
-
-  var series = chart.series.push(new am4charts.LineSeries());
+  let series = chart.series.push(new am4charts.LineSeries());
   series.dataFields.valueY = "32Hz";
   series.dataFields.categoryX = "second";
   series.name = "32Hz";
-  series.stroke = am4core.color("#2196f3");
+  series.stroke = am4core.color("#18ffff");
   series.tooltipText = "{name}: [bold]{valueY}[/]";
-  series.stacked = true;
+  series.stacked = false;
 
-  var series2 = chart.series.push(new am4charts.LineSeries());
+  let series2 = chart.series.push(new am4charts.LineSeries());
   series2.dataFields.valueY = "62Hz";
   series2.dataFields.categoryX = "second";
   series2.name = "62Hz";
-  series2.stroke = am4core.color("#eeff41");
+  series2.stroke = am4core.color("#18ffff");
   series2.tooltipText = "{name}: [bold]{valueY}[/]";
-  series2.stacked = true;
+  series2.stacked = false;
 
-  var series3 = chart.series.push(new am4charts.LineSeries());
+  let series3 = chart.series.push(new am4charts.LineSeries());
   series3.dataFields.valueY = "125Hz";
   series3.dataFields.categoryX = "second";
   series3.name = "125Hz";
-  series3.stroke = am4core.color("#76ff03");
+  series3.stroke = am4core.color("#18ffff");
   series3.tooltipText = "{name}: [bold]{valueY}[/]";
-  series3.stacked = true;
+  series3.stacked = false;
 
-  var series4 = chart.series.push(new am4charts.LineSeries());
+  let series4 = chart.series.push(new am4charts.LineSeries());
   series4.dataFields.valueY = "250Hz";
   series4.dataFields.categoryX = "second";
   series4.name = "250Hz";
-  series4.stroke = am4core.color("#4a148c");
+  series4.stroke = am4core.color("#18ffff");
   series4.tooltipText = "{name}: [bold]{valueY}[/]";
-  series4.stacked = true;
+  series4.stacked = false;
 
-  var series5 = chart.series.push(new am4charts.LineSeries());
+  let series5 = chart.series.push(new am4charts.LineSeries());
   series5.dataFields.valueY = "500Hz";
   series5.dataFields.categoryX = "second";
   series5.name = "500Hz";
-  series5.stroke = am4core.color("#e53935");
+  series5.stroke = am4core.color("#18ffff");
   series5.tooltipText = "{name}: [bold]{valueY}[/]";
-  series5.stacked = true;
+  series5.stacked = false;
 
-  var series6 = chart.series.push(new am4charts.LineSeries());
+  let series6 = chart.series.push(new am4charts.LineSeries());
   series6.dataFields.valueY = "1kHz";
   series6.dataFields.categoryX = "second";
   series6.name = "1kHz";
-  series6.stroke = am4core.color("#ff1744");
+  series6.stroke = am4core.color("#18ffff");
   series6.tooltipText = "{name}: [bold]{valueY}[/]";
-  series6.stacked = true;
+  series6.stacked = false;
 
-  var series7 = chart.series.push(new am4charts.LineSeries());
+  let series7 = chart.series.push(new am4charts.LineSeries());
   series7.dataFields.valueY = "2kHz";
   series7.dataFields.categoryX = "second";
   series7.name = "2kHz";
-  series7.stroke = am4core.color("#651fff");
+  series7.stroke = am4core.color("#18ffff");
   series7.tooltipText = "{name}: [bold]{valueY}[/]";
-  series7.stacked = true;
+  series7.stacked = false;
 
-  var series8 = chart.series.push(new am4charts.LineSeries());
+  let series8 = chart.series.push(new am4charts.LineSeries());
   series8.dataFields.valueY = "4kHz";
   series8.dataFields.categoryX = "second";
   series8.name = "4kHz";
-  series8.stroke = am4core.color("#01579b");
+  series8.stroke = am4core.color("#18ffff");
   series8.tooltipText = "{name}: [bold]{valueY}[/]";
-  series8.stacked = true;
+  series8.stacked = false;
 
-  var series9 = chart.series.push(new am4charts.LineSeries());
+  let series9 = chart.series.push(new am4charts.LineSeries());
   series9.dataFields.valueY = "8kHz";
   series9.dataFields.categoryX = "second";
   series9.name = "8kHz";
-  series9.stroke = am4core.color("#64ffda");
+  series9.stroke = am4core.color("#18ffff");
   series9.tooltipText = "{name}: [bold]{valueY}[/]";
-  series9.stacked = true;
+  series9.stacked = false;
 
-  var series10 = chart.series.push(new am4charts.LineSeries());
+  let series10 = chart.series.push(new am4charts.LineSeries());
   series10.dataFields.valueY = "16kHz";
   series10.dataFields.categoryX = "second";
   series10.name = "16kHz";
   series10.stroke = am4core.color("#18ffff");
   series10.tooltipText = "{name}: [bold]{valueY}[/]";
-  series10.stacked = true;
+  series10.stacked = false;
 
-  // Add cursor
+  let series11 = chart.series.push(new am4charts.LineSeries());
+  series11.dataFields.valueY = "Trend";
+  series11.dataFields.categoryX = "second";
+  series11.name = "Trend";
+  series11.stroke = am4core.color("#ff1744");
+  series11.tooltipText = "{name}: [bold]{valueY}[/]";
+  series11.stacked = false;
+
   chart.cursor = new am4charts.XYCursor();
 
 });
