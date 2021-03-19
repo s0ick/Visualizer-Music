@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-  valueAxis.title.text = "Hz (value)";
+  valueAxis.title.text = "Db";
 
   let series6 = chart.series.push(new am4charts.LineSeries());
   series6.dataFields.valueY = "1kHz";
