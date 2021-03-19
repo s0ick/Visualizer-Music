@@ -5,7 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
       gainNode = null;
 
   const chartdiv = document.getElementById('chartdiv');
-  let chart = am4core.create(chartdiv, am4charts.XYChart);    
+  let chart = am4core.create(chartdiv, am4charts.XYChart);
+  am4core.useTheme(am4themes_dark);
+  chart.scrollbarX = new am4core.Scrollbar();
+  chart.scrollbarY = new am4core.Scrollbar();
+  chart.legend = new am4charts.Legend();    
 
   let globalObj = [],
       second = 0;
@@ -16,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let canvas = document.querySelector('canvas'),
       canvasBB = document.createElement('canvas'),
-      canvasW = 32 * 8,
+      canvasW = 10 * 8,
       canvasH = 64;
       canvasHh = Math.floor(canvasH / 2);
       
@@ -45,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let FFT = (function () {	
-		let m = 32;
+		let m = 10;
 		let out = new Array( m );
 
 		return function ( data, len ) {
@@ -90,33 +94,23 @@ document.addEventListener('DOMContentLoaded', () => {
 		canvasBB.ctx.clearRect( x, y + 2, w, 1 );
   };
 
-  let pv = new Array( 32 );
-	for (let i = 1; i < 32; i++ ) pv[i] = 1;
+  let pv = new Array( 10 );
+	for (let i = 1; i < 10; i++ ) pv[i] = 1;
 
-  let outForGraph = null;
+  let outForGraph = [];
+  let Onekhz = 0;
 
   
   let interval = setInterval(() => {
     if(smp) {
       second++;
 
-      let trend = 0;
-      for(let i = 1; i < 10; i++) {
-        trend += (outForGraph[i] + outForGraph[i-1] + outForGraph[i+1]) / 30;
-      }
+      let trend = (outForGraph[outForGraph.length - 3] + outForGraph[outForGraph.length - 2] + outForGraph[outForGraph.length - 1]) / 3;
 
       globalObj.push({
-        "second": second, 
-        "32Hz": outForGraph[1], 
-        "64Hz": outForGraph[2],
-        "125Hz": outForGraph[3],
-        "250Hz": outForGraph[4],
-        "500Hz": outForGraph[5],
-        "1kHz": outForGraph[5],
-        "2kHz": outForGraph[6],
-        "4kHz": outForGraph[7],
-        "8kHz": outForGraph[8],
-        "16kHz": outForGraph[9],
+        "second": second,
+        "secondFast": second + 1,  
+        "1kHz": Onekhz,
         "Trend" : second === 1 ? 0 : trend
       });
         chart.data = globalObj;
@@ -129,7 +123,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		if ( sample ) {
       out = FFT( sample, sampleLen );
-      outForGraph = out;
+      outForGraph.push(out[6]);
+      Onekhz = out[6];
     }
 
 		for ( x = 0, s = 0; x < canvasW; x += 8, s++ ) {
@@ -268,49 +263,12 @@ document.addEventListener('DOMContentLoaded', () => {
   categoryAxis.renderer.grid.template.location = 0;
   categoryAxis.renderer.minGridDistance = 20;
 
+  let categoryAxis2 = chart.xAxes.push(new am4charts.CategoryAxis());
+  categoryAxis2.dataFields.category = "secondFast";
+
 
   let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-  valueAxis.title.text = "Hz";
-
-  let series = chart.series.push(new am4charts.LineSeries());
-  series.dataFields.valueY = "32Hz";
-  series.dataFields.categoryX = "second";
-  series.name = "32Hz";
-  series.stroke = am4core.color("#18ffff");
-  series.tooltipText = "{name}: [bold]{valueY}[/]";
-  series.stacked = false;
-
-  let series2 = chart.series.push(new am4charts.LineSeries());
-  series2.dataFields.valueY = "62Hz";
-  series2.dataFields.categoryX = "second";
-  series2.name = "62Hz";
-  series2.stroke = am4core.color("#18ffff");
-  series2.tooltipText = "{name}: [bold]{valueY}[/]";
-  series2.stacked = false;
-
-  let series3 = chart.series.push(new am4charts.LineSeries());
-  series3.dataFields.valueY = "125Hz";
-  series3.dataFields.categoryX = "second";
-  series3.name = "125Hz";
-  series3.stroke = am4core.color("#18ffff");
-  series3.tooltipText = "{name}: [bold]{valueY}[/]";
-  series3.stacked = false;
-
-  let series4 = chart.series.push(new am4charts.LineSeries());
-  series4.dataFields.valueY = "250Hz";
-  series4.dataFields.categoryX = "second";
-  series4.name = "250Hz";
-  series4.stroke = am4core.color("#18ffff");
-  series4.tooltipText = "{name}: [bold]{valueY}[/]";
-  series4.stacked = false;
-
-  let series5 = chart.series.push(new am4charts.LineSeries());
-  series5.dataFields.valueY = "500Hz";
-  series5.dataFields.categoryX = "second";
-  series5.name = "500Hz";
-  series5.stroke = am4core.color("#18ffff");
-  series5.tooltipText = "{name}: [bold]{valueY}[/]";
-  series5.stacked = false;
+  valueAxis.title.text = "Hz (value)";
 
   let series6 = chart.series.push(new am4charts.LineSeries());
   series6.dataFields.valueY = "1kHz";
@@ -320,41 +278,9 @@ document.addEventListener('DOMContentLoaded', () => {
   series6.tooltipText = "{name}: [bold]{valueY}[/]";
   series6.stacked = false;
 
-  let series7 = chart.series.push(new am4charts.LineSeries());
-  series7.dataFields.valueY = "2kHz";
-  series7.dataFields.categoryX = "second";
-  series7.name = "2kHz";
-  series7.stroke = am4core.color("#18ffff");
-  series7.tooltipText = "{name}: [bold]{valueY}[/]";
-  series7.stacked = false;
-
-  let series8 = chart.series.push(new am4charts.LineSeries());
-  series8.dataFields.valueY = "4kHz";
-  series8.dataFields.categoryX = "second";
-  series8.name = "4kHz";
-  series8.stroke = am4core.color("#18ffff");
-  series8.tooltipText = "{name}: [bold]{valueY}[/]";
-  series8.stacked = false;
-
-  let series9 = chart.series.push(new am4charts.LineSeries());
-  series9.dataFields.valueY = "8kHz";
-  series9.dataFields.categoryX = "second";
-  series9.name = "8kHz";
-  series9.stroke = am4core.color("#18ffff");
-  series9.tooltipText = "{name}: [bold]{valueY}[/]";
-  series9.stacked = false;
-
-  let series10 = chart.series.push(new am4charts.LineSeries());
-  series10.dataFields.valueY = "16kHz";
-  series10.dataFields.categoryX = "second";
-  series10.name = "16kHz";
-  series10.stroke = am4core.color("#18ffff");
-  series10.tooltipText = "{name}: [bold]{valueY}[/]";
-  series10.stacked = false;
-
   let series11 = chart.series.push(new am4charts.LineSeries());
   series11.dataFields.valueY = "Trend";
-  series11.dataFields.categoryX = "second";
+  series11.dataFields.categoryX = "secondFast";
   series11.name = "Trend";
   series11.stroke = am4core.color("#ff1744");
   series11.tooltipText = "{name}: [bold]{valueY}[/]";
