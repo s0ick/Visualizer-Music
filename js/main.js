@@ -4,16 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
       sp = null,
       gainNode = null;
 
-  const chartdiv = document.getElementById('chartdiv');
-  let chart = am4core.create(chartdiv, am4charts.XYChart);
-  am4core.useTheme(am4themes_dark);
-  chart.scrollbarX = new am4core.Scrollbar();
-  chart.scrollbarY = new am4core.Scrollbar();
-  chart.legend = new am4charts.Legend();    
-
-  let globalObj = [],
-      second = 0;
-
   const playBtn = document.getElementById('start'),
         volume = document.getElementById('volume'),
         range = document.getElementById('range');
@@ -49,30 +39,34 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let FFT = (function () {	
-		let m = 10;
+		let m = 10; // Количество наших гармоник (должно быть кратно 2)
 		let out = new Array( m );
 
 		return function ( data, len ) {
 			let pid = ( 2.0 * Math.PI ) / len;
 
-			let r, i, w, t;
+			let r, i;
+
+      // Высчитываем среднее значение по всему интервалу
+		  // для последующей нормализации
 
 			let mv = 0;
-			for ( t = 0; t < len; t++ ) mv += data[t];
+			for (let t = 0; t < len; t++ ) mv += data[t];
 			mv = mv / len;
 
-			for ( w = 0; w < m; w++ ) {
-				let a = w * pid;
+			for (let har = 0; har < m; har++ ) {
+				let a = har * pid;
 				r = 0;
 				i = 0;
-				for ( t = 0; t < len; t++ ) {
+				for (let t = 0; t < len; t++ ) {
+          // Нормализация значения из интервала
 					let v = data[t] - mv;
 					let ta = a * t;
-					r += v * Math.cos( ta );
-					i += v * Math.sin( ta );
+					r += v * Math.cos( ta ); // Мнимая часть
+					i += v * Math.sin( ta ); // Действительная часть
 				}
 
-				out[w] = Math.sqrt( r * r + i * i ) / len;
+				out[har] = Math.sqrt( r * r + i * i ) / len; // Амплитуда
 			}
 
 			return out;
@@ -97,25 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let pv = new Array( 10 );
 	for (let i = 1; i < 10; i++ ) pv[i] = 1;
 
-  let outForGraph = [];
-  let Onekhz = 0;
-
-  
-  let interval = setInterval(() => {
-    if(smp) {
-      second++;
-
-      let trend = (outForGraph[outForGraph.length - 3] + outForGraph[outForGraph.length - 2] + outForGraph[outForGraph.length - 1]) / 3;
-
-      globalObj.push({
-        "second": second,
-        "secondFast": second + 1,  
-        "1kHz": Onekhz,
-        "Trend" : second === 1 ? 0 : trend
-      });
-        chart.data = globalObj;
-    }
-  }, 1000);
 
   const visualize = (sample, sampleLen) => {
     let out = null, x, s;
@@ -123,8 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 		if ( sample ) {
       out = FFT( sample, sampleLen );
-      outForGraph.push(out[6]);
-      Onekhz = out[6];
     }
 
 		for ( x = 0, s = 0; x < canvasW; x += 8, s++ ) {
@@ -157,9 +130,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if(!state) {
       range.value = 1;
       volume.textContent = 1;
-      clearInterval(interval);
-      globalObj = [];
-      second = 0;
     }
   };
 
@@ -256,36 +226,5 @@ document.addEventListener('DOMContentLoaded', () => {
       volume.textContent = range.value;
     } else range.value = 1;
   });
-
-  let categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-  categoryAxis.dataFields.category = "second";
-  categoryAxis.title.text = "Seconds";
-  categoryAxis.renderer.grid.template.location = 0;
-  categoryAxis.renderer.minGridDistance = 20;
-
-  let categoryAxis2 = chart.xAxes.push(new am4charts.CategoryAxis());
-  categoryAxis2.dataFields.category = "secondFast";
-
-
-  let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-  valueAxis.title.text = "Db";
-
-  let series6 = chart.series.push(new am4charts.LineSeries());
-  series6.dataFields.valueY = "1kHz";
-  series6.dataFields.categoryX = "second";
-  series6.name = "1kHz";
-  series6.stroke = am4core.color("#18ffff");
-  series6.tooltipText = "{name}: [bold]{valueY}[/]";
-  series6.stacked = false;
-
-  let series11 = chart.series.push(new am4charts.LineSeries());
-  series11.dataFields.valueY = "Trend";
-  series11.dataFields.categoryX = "secondFast";
-  series11.name = "Trend";
-  series11.stroke = am4core.color("#ff1744");
-  series11.tooltipText = "{name}: [bold]{valueY}[/]";
-  series11.stacked = false;
-
-  chart.cursor = new am4charts.XYCursor();
 
 });
